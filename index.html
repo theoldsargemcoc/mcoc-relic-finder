@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>MCOC Relic Finder</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 10px; }
+    #filter { width:100%; margin-bottom:12px; font-size:1.2em;}
+    .card { background:#fff; border-radius:12px; box-shadow:0 1px 6px #aaa; margin:10px 0; padding:14px 16px; }
+    .card strong { font-size:1.15em; }
+    @media(min-width:650px){ .card {max-width:46%;display:inline-block;vertical-align:top;margin-right:4%;}}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+  <input id="filter" type="text" placeholder="Type to search relic, champ, or stat...">
+  <div id="list"></div>
+  <script>
+    // Your published CSV link from Google Sheets:
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHSyC_rR4H_5M57fzzDqsTCXGgJDxzRlVJekbVkdmYKbnWA9FW3fqirfW-ffHExUCF-eQstA3I1boN/pub?output=csv';
+
+    let allRows = [];
+
+    function render(filterText='') {
+      const filter = filterText.trim().toLowerCase();
+      const shown = allRows.filter(row =>
+        Object.values(row).some(val => val && val.toLowerCase().includes(filter))
+      );
+      let out = shown.map(row=>`
+        <div class="card">
+          <strong>${row['Relic Name'] || ''}</strong> ${row['Champion'] ? '— <b>' + row['Champion'] + '</b>' : ''}
+          <br>Primary: <b>${row['Primary Stat']||row['Primary Stat Focus']||''}</b>
+          <br>Secondary: <b>${row['Secondary Stat']||row['Secondary Stat Focus']||''}</b>
+          ${row['Notes']||row['Notes/Why']?`<br><small>${row['Notes']||row['Notes/Why']}</small>`:''}
+        </div>
+      `).join('');
+      document.getElementById('list').innerHTML = out || "<em>No matching results.</em>";
+    }
+
+    Papa.parse(CSV_URL, {
+      download:true,
+      header:true,
+      complete: res => {
+        allRows = res.data.filter(row => row['Relic Name'] && row['Champion']);
+        render();
+        document.getElementById('filter').oninput=e=>render(e.target.value);
+      }
+    });
+  </script>
+</body>
+</html>
