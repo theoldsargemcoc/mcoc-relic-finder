@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -29,10 +30,10 @@
       );
       let out = shown.map(row=>`
         <div class="card">
-          <strong>${row['Relic Name'] || ''}</strong> ${row['Champion'] ? '— <b>' + row['Champion'] + '</b>' : ''}
+          <strong>${row['Relic']||row['Relic Name']||''}</strong> ${row['Champion'] ? '— <b>' + row['Champion'] + '</b>' : ''}
           <br>Primary: <b>${row['Primary Stat']||row['Primary Stat Focus']||''}</b>
           <br>Secondary: <b>${row['Secondary Stat']||row['Secondary Stat Focus']||''}</b>
-          ${row['Notes']||row['Notes/Why']?`<br><small>${row['Notes']||row['Notes/Why']}</small>`:''}
+          ${(row['Notes']||row['Notes/Why'])?`<br><small>${row['Notes']||row['Notes/Why']}</small>`:''}
         </div>
       `).join('');
       document.getElementById('list').innerHTML = out || "<em>No matching results.</em>";
@@ -42,7 +43,10 @@
       download:true,
       header:true,
       complete: res => {
-        allRows = res.data.filter(row => row['Relic Name'] && row['Champion']);
+        // Filter out any completely blank rows (more robust)
+        allRows = res.data.filter(row =>
+          (row['Relic']||row['Relic Name']) && row['Champion']
+        );
         render();
         document.getElementById('filter').oninput=e=>render(e.target.value);
       }
